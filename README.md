@@ -64,7 +64,7 @@ flutter pub get
 ```
 
 #### Dynamic libraries
-1. Download [TensorFlowLiteC.framework.zip](https://git.hoomano.com/hoomano/mojo-perception-flutter/-/blob/master/TensorFlowLiteC.framework.zip) (TensorFlowLiteC framework with Mediapipe special ops).
+1. Download [TensorFlowLiteC.framework.zip](https://github.com/hoomano/mojo-perception-flutter/blob/master/TensorFlowLiteC.framework.zip) (TensorFlowLiteC framework with Mediapipe special ops).
 
 2. Unzip `TensorFlowLiteC.framework` in the pub-cache folder of tflite_flutter package:
 [Pub-Cache folder location](https://dart.dev/tools/pub/cmd/pub-get#the-system-package-cache):
@@ -76,7 +76,7 @@ flutter pub get
 
 ### `ANDROID`:
 #### Dynamic libraries
-1. Download [jniLibs.zip](https://git.hoomano.com/hoomano/mojo-perception-flutter/-/blob/master/jniLibs.zip).
+1. Download [jniLibs.zip](https://github.com/hoomano/mojo-perception-flutter/blob/master/jniLibs.zip).
 
 2. Extract in your project path : `android > app > src > main`
 
