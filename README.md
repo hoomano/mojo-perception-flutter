@@ -25,7 +25,7 @@ No images are never sent to the the cloud.
 
 Handle your user's emotional reactions to build on top of your amazing app
 
-![demo_image.jpg](demo_image.jpg)
+![demo_image.jpg](https://docs.mojo.ai/images/demo_image.jpeg)
 
 ## Requirement
 
