@@ -1,6 +1,6 @@
 name: mojo_perception
 description: Mojo Perception Flutter API
-version: 1.0.0
+version: 1.0.1
 homepage: https://docs.mojo.ai
 
 environment:
