@@ -134,6 +134,9 @@ class MojoPerceptionAPI {
   /// Called on face detected
   late Function faceDetectedCallback;
 
+  /// Called on no face detected
+  late Function noFaceDetectedCallback;
+
   /// Flag to indicate if the API subscribes to real-time calculation (optional)
   bool subscribeRealtimeOutput = false;
 
@@ -145,7 +148,7 @@ class MojoPerceptionAPI {
 
   /// Used by default for all callbacks. Does nothing.
   /// [message] not used
-  void defaultCallback(data) {
+  void defaultCallback({data}) {
     return;
   }
 
@@ -176,6 +179,7 @@ class MojoPerceptionAPI {
     onStopCallback = defaultOnStopCallback;
     firstEmitDoneCallback = defaultFirstEmitDoneFallback;
     faceDetectedCallback = defaultCallback;
+    noFaceDetectedCallback = defaultCallback;
   }
 
   /// Returns a string representing the MojoPerceptionAPI object
@@ -281,11 +285,15 @@ class MojoPerceptionAPI {
   /// Calls [facemeshInference] to get anonymized face landmarks predictions to send to the API.
   Future<void> handleCameraImage(CameraImage cameraImage) async {
     var detection = await faceDetectionInference(cameraImage: cameraImage);
-    if (detection == null || detection['bbox'] == null) {
+    if (detection == null) {
+      return;
+    }
+    if (!detection.containsKey('bbox') || detection['bbox'] == null) {
+      await noFaceDetectedCallback();
       return;
     }
     Rect detectedFace = detection["bbox"];
-    faceDetectedCallback(detectedFace);
+    await faceDetectedCallback(detectedFace);
 
     img.Image? image = ImageConverter.convertCameraImage(cameraImage);
     if (Platform.isAndroid) {
@@ -313,12 +321,16 @@ class MojoPerceptionAPI {
   /// Gets access to the camera, and starts imageStream.
   /// Connects to socketIO.
   Future<CameraController?> startCameraAndConnectAPI() async {
+    _predictingFaceDetection = false;
+    _predictingFacemesh = false;
+    firstEmitDone = false;
+
     _isolateUtils = IsolateUtils();
     await _isolateUtils.initIsolate();
     await initInterpreters();
     var cameraDirection = CameraLensDirection.front;
     List<CameraDescription> cameras = await availableCameras();
-    var cameraDescription = await cameras.firstWhere(
+    var cameraDescription = cameras.firstWhere(
       (CameraDescription camera) => camera.lensDirection == cameraDirection,
     );
     cameraController = CameraController(
@@ -454,7 +466,7 @@ class MojoPerceptionAPI {
   /// disconnects from the stream and dispose [_isolateUtils]
   Future<void> stopFacialExpressionRecognitionAPI() async {
     try {
-      if (sending == false) {
+      if (firstEmitDone && sending == false) {
         return;
       }
       sending = false;

@@ -123,7 +123,7 @@ class FaceDetectionService {
 
     detections = nonMaximumSuppression(detections, threshold);
     if (detections.isEmpty) {
-      return null;
+      return {};
     }
 
     final rectFaces = <Map<String, dynamic>>[];
