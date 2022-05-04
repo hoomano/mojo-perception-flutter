@@ -146,9 +146,15 @@ class MojoPerceptionAPI {
   /// Whether the [facemeshInterpreter] is busy generating a prediction or not
   bool _predictingFacemesh = false;
 
-  /// Used by default for all callbacks. Does nothing.
+  /// Used by default for all callbacks taking "data" as parameter. Does nothing.
   /// [message] not used
-  void defaultCallback({data}) {
+  void defaultDataCallback(data) {
+    return;
+  }
+
+  /// Used by default for all callbacks taking no parameter. Does nothing.
+  /// [message] not used
+  void defaultNoDataCallback() {
     return;
   }
 
@@ -169,17 +175,17 @@ class MojoPerceptionAPI {
   /// firstEmit, error and stop callbacks
   MojoPerceptionAPI(this.authToken, this.host, this.port, this.userNamespace) {
     socketIoUri = 'https://$host:$port/$userNamespace';
-    attentionCallback = defaultCallback;
-    amusementCallback = defaultCallback;
-    confusionCallback = defaultCallback;
-    surpriseCallback = defaultCallback;
-    yawingCallback = defaultCallback;
-    pitchingCallback = defaultCallback;
-    onErrorCallback = defaultCallback;
+    attentionCallback = defaultDataCallback;
+    amusementCallback = defaultDataCallback;
+    confusionCallback = defaultDataCallback;
+    surpriseCallback = defaultDataCallback;
+    yawingCallback = defaultDataCallback;
+    pitchingCallback = defaultDataCallback;
+    onErrorCallback = defaultDataCallback;
     onStopCallback = defaultOnStopCallback;
     firstEmitDoneCallback = defaultFirstEmitDoneFallback;
-    faceDetectedCallback = defaultCallback;
-    noFaceDetectedCallback = defaultCallback;
+    faceDetectedCallback = defaultDataCallback;
+    noFaceDetectedCallback = defaultNoDataCallback;
   }
 
   /// Returns a string representing the MojoPerceptionAPI object
@@ -211,22 +217,28 @@ class MojoPerceptionAPI {
   }
 
   /// Loads tflite model for landmarks detection from assets in [facemeshInterpreter]
-  Future<void> initInterpreters() async {
+  Future<bool> initInterpreters() async {
     try {
       // face detection
       String faceDetectionModel =
           "packages/mojo_perception/assets/face_detection_short_range.tflite";
       ByteData faceDetectionRawAssetFile =
-          await rootBundle.load(faceDetectionModel);
+      await rootBundle.load(faceDetectionModel);
 
       Uint8List faceDetectionRawBytes =
-          faceDetectionRawAssetFile.buffer.asUint8List();
+      faceDetectionRawAssetFile.buffer.asUint8List();
 
-      faceDetectionInterpreter = Interpreter.fromBuffer(faceDetectionRawBytes);
+      try {
+        faceDetectionInterpreter =
+            Interpreter.fromBuffer(faceDetectionRawBytes);
+      } catch (e) {
+        onErrorCallback(e);
+        return false;
+      }
       faceDetectionInputShape =
           faceDetectionInterpreter.getInputTensor(0).shape;
       final faceDetectionOutputTensors =
-          faceDetectionInterpreter.getOutputTensors();
+      faceDetectionInterpreter.getOutputTensors();
 
       faceDetectionOutputTensors.forEach((tensor) {
         faceDetectionOutputsShapes.add(tensor.shape);
@@ -240,16 +252,23 @@ class MojoPerceptionAPI {
 
       Uint8List facemeshRawBytes = facemeshRawAssetFile.buffer.asUint8List();
 
-      facemeshInterpreter =
-          Interpreter.fromBuffer(facemeshRawBytes, options: interpreterOptions);
+      try {
+        facemeshInterpreter = Interpreter.fromBuffer(facemeshRawBytes,
+            options: interpreterOptions);
+      } catch (e) {
+        onErrorCallback(e);
+        return false;
+      }
       facemeshInputShape = facemeshInterpreter.getInputTensor(0).shape;
       final facemeshOutputTensors = facemeshInterpreter.getOutputTensors();
 
       facemeshOutputTensors.forEach((tensor) {
         facemeshOutputsShapes.add(tensor.shape);
       });
+      return true;
     } on Exception catch (e) {
       onErrorCallback(e);
+      return false;
     }
   }
 
@@ -327,11 +346,14 @@ class MojoPerceptionAPI {
 
     _isolateUtils = IsolateUtils();
     await _isolateUtils.initIsolate();
-    await initInterpreters();
+    bool initInterpretersDone = await initInterpreters();
+    if (!initInterpretersDone) {
+      return null;
+    }
     var cameraDirection = CameraLensDirection.front;
     List<CameraDescription> cameras = await availableCameras();
     var cameraDescription = cameras.firstWhere(
-      (CameraDescription camera) => camera.lensDirection == cameraDirection,
+          (CameraDescription camera) => camera.lensDirection == cameraDirection,
     );
     cameraController = CameraController(
       cameraDescription,
@@ -341,7 +363,7 @@ class MojoPerceptionAPI {
     await cameraController!.initialize();
 
     await cameraController!.startImageStream(
-      (CameraImage cameraImage) async {
+          (CameraImage cameraImage) async {
         await handleCameraImage(cameraImage);
       },
     );
@@ -474,7 +496,9 @@ class MojoPerceptionAPI {
       /// disconnect from API
       apiSocket.disconnect();
       onStopCallback();
-      await cameraController?.stopImageStream();
+      if (cameraController!.value.isStreamingImages) {
+        await cameraController?.stopImageStream();
+      }
       cameraController?.dispose();
       cameraController = null;
       _isolateUtils.dispose();
