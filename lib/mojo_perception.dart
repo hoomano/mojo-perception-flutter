@@ -77,6 +77,9 @@ class MojoPerceptionAPI {
     'yawing',
   ];
 
+  /// Calculate the frame rate of Face Detection
+  late double faceDetectionFrameRate;
+
   /// Controller to get camera imageStream
   CameraController? cameraController;
 
@@ -223,10 +226,10 @@ class MojoPerceptionAPI {
       String faceDetectionModel =
           "packages/mojo_perception/assets/face_detection_short_range.tflite";
       ByteData faceDetectionRawAssetFile =
-      await rootBundle.load(faceDetectionModel);
+          await rootBundle.load(faceDetectionModel);
 
       Uint8List faceDetectionRawBytes =
-      faceDetectionRawAssetFile.buffer.asUint8List();
+          faceDetectionRawAssetFile.buffer.asUint8List();
 
       try {
         faceDetectionInterpreter =
@@ -238,7 +241,7 @@ class MojoPerceptionAPI {
       faceDetectionInputShape =
           faceDetectionInterpreter.getInputTensor(0).shape;
       final faceDetectionOutputTensors =
-      faceDetectionInterpreter.getOutputTensors();
+          faceDetectionInterpreter.getOutputTensors();
 
       faceDetectionOutputTensors.forEach((tensor) {
         faceDetectionOutputsShapes.add(tensor.shape);
@@ -353,7 +356,7 @@ class MojoPerceptionAPI {
     var cameraDirection = CameraLensDirection.front;
     List<CameraDescription> cameras = await availableCameras();
     var cameraDescription = cameras.firstWhere(
-          (CameraDescription camera) => camera.lensDirection == cameraDirection,
+      (CameraDescription camera) => camera.lensDirection == cameraDirection,
     );
     cameraController = CameraController(
       cameraDescription,
@@ -363,7 +366,7 @@ class MojoPerceptionAPI {
     await cameraController!.initialize();
 
     await cameraController!.startImageStream(
-          (CameraImage cameraImage) async {
+      (CameraImage cameraImage) async {
         await handleCameraImage(cameraImage);
       },
     );
@@ -421,6 +424,9 @@ class MojoPerceptionAPI {
     );
 
     Map<String, dynamic>? inferenceResults = await responsePort.first;
+
+    faceDetectionFrameRate = inferenceResults!["frameRate"];
+
     responsePort.close();
 
     _predictingFaceDetection = false;

@@ -154,12 +154,17 @@ class FaceDetectionService {
 /// Function called by [Isolate] to process [cameraImage]
 /// and detect faces on the image
 Map<String, dynamic>? runFaceDetection(Map<String, dynamic> params) {
+  int startedTimeRunFaceDetection = DateTime.now().millisecond;
   final faceDetection = FaceDetectionService(
       Interpreter.fromAddress(params['detectorAddress']),
       params["inputShape"],
       params["outputsShapes"]);
   final image = ImageConverter.convertCameraImage(params['cameraImage'])!;
   final result = faceDetection.predict(image);
+  int finishedTimeRunFaceDetection = DateTime.now().millisecond;
+  result!["frameRate"] = 1000 /
+      (finishedTimeRunFaceDetection -
+          startedTimeRunFaceDetection); // Convert from ms to HZ
 
   return result;
 }

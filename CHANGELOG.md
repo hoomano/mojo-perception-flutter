@@ -1,3 +1,7 @@
+## 1.0.4
+
+- Calculate the frame rate of Face Detection
+
 ## 1.0.3
 
 - Fix defaultCallBacks by introducing one for callbacks taking arguments and one for callback with no argument.
