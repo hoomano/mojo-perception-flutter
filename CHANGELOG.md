@@ -1,3 +1,7 @@
+## 1.0.5
+
+- Fix the problem of converting Camera images in YUV420 format to Image in RGB format on android
+
 ## 1.0.4
 
 - Calculate the frame rate of Face Detection
