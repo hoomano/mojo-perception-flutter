@@ -67,14 +67,14 @@ class MojoPerceptionAPI {
 
   /// Default emotions computed by the API
   ///
-  /// ['attention','confusion','surprise','amusement','pitching','yawing']
+  /// ['attention','confusion','surprise','amusement', 'engagement', 'interaction']
   List<String> emotions = [
     'attention',
     'confusion',
     'surprise',
     'amusement',
-    'pitching',
-    'yawing',
+    'engagement',
+    'interaction'
   ];
 
   /// Calculate the frame rate of Face Detection
@@ -116,11 +116,11 @@ class MojoPerceptionAPI {
   /// Handler for real-time surprise calculation received
   late Function surpriseCallback;
 
-  /// Handler for real-time yawing calculation received
-  late Function yawingCallback;
+  /// Handler for real-time engagement calculation received
+  late Function engagementCallback;
 
-  /// Handler for real-time pitching calculation received
-  late Function pitchingCallback;
+  /// Handler for real-time interaction calculation received
+  late Function interactionCallback;
 
   /// Called when first emit to SocketIO stream server has been done
   late Function firstEmitDoneCallback;
@@ -182,8 +182,8 @@ class MojoPerceptionAPI {
     amusementCallback = defaultDataCallback;
     confusionCallback = defaultDataCallback;
     surpriseCallback = defaultDataCallback;
-    yawingCallback = defaultDataCallback;
-    pitchingCallback = defaultDataCallback;
+    engagementCallback = defaultDataCallback;
+    interactionCallback = defaultDataCallback;
     onErrorCallback = defaultDataCallback;
     onStopCallback = defaultOnStopCallback;
     firstEmitDoneCallback = defaultFirstEmitDoneFallback;
@@ -280,22 +280,22 @@ class MojoPerceptionAPI {
   void handleCalculationMessage(Map<String, dynamic> msg) {
     try {
       if (msg['attention'] != null) {
-        attentionCallback(msg['attention'].toDouble());
+        attentionCallback(msg['attention']);
       }
       if (msg['surprise'] != null) {
-        surpriseCallback(msg['surprise'].toDouble());
+        surpriseCallback(msg['surprise']);
       }
       if (msg['amusement'] != null) {
-        amusementCallback(msg['amusement'].toDouble());
+        amusementCallback(msg['amusement']);
       }
       if (msg['confusion'] != null) {
-        confusionCallback(msg['confusion'].toDouble());
+        confusionCallback(msg['confusion']);
       }
-      if (msg['pitching'] != null) {
-        pitchingCallback(msg['pitching'].toDouble());
+      if (msg['engagement'] != null) {
+        engagementCallback(msg['engagement']);
       }
-      if (msg['yawing'] != null) {
-        yawingCallback(msg['yawing'].toDouble());
+      if (msg['interaction'] != null) {
+        interactionCallback(msg['interaction']);
       }
     } on Exception catch (e) {
       onErrorCallback(e);
@@ -375,6 +375,7 @@ class MojoPerceptionAPI {
         io.OptionBuilder()
             .setTransports(['websocket'])
             .disableAutoConnect()
+            .setAuth({'token': authToken})
             .build());
 
     // callback on messages
@@ -406,9 +407,7 @@ class MojoPerceptionAPI {
     if (_predictingFaceDetection) {
       return null;
     }
-
     _predictingFaceDetection = true;
-
     final responsePort = ReceivePort();
 
     _isolateUtils.sendMessage(
@@ -424,11 +423,8 @@ class MojoPerceptionAPI {
     );
 
     Map<String, dynamic>? inferenceResults = await responsePort.first;
-
     faceDetectionFrameRate = inferenceResults!["frameRate"];
-
     responsePort.close();
-
     _predictingFaceDetection = false;
     return inferenceResults;
   }
@@ -476,7 +472,6 @@ class MojoPerceptionAPI {
       }
       apiSocket.emit('facemesh', {
         'facemesh': facemesh,
-        'token': authToken,
         'timestamp': DateTime.now().toIso8601String(),
         'output': emotions,
       });

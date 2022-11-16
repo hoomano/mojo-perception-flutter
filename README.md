@@ -14,8 +14,8 @@ Mojo Facial Expression Recognition provides :
 🎉 3 social cues :
 
 - attention
-- engagement (soon)
-- interaction status (soon)
+- engagement
+- interaction status
 
 > 💡 Open Source API
 > ⚡️ Real-time
@@ -36,7 +36,7 @@ Get your [free trial API key](https://hoomano.com/free-facial-expression-recogni
 Add this line like this to your project's pubspec.yaml and run flutter pub get:
 ```
 dependencies:
-  mojo_perception: ^1.0.0
+  mojo_perception: ^2.0.0
 ```
 
 
@@ -64,7 +64,7 @@ flutter pub get
 ```
 
 #### Dynamic libraries
-1. Download [TensorFlowLiteC.framework.zip](https://github.com/hoomano/mojo-perception-flutter/blob/master/TensorFlowLiteC.framework.zip) (TensorFlowLiteC framework with Mediapipe special ops).
+1. Download [TensorFlowLiteC.framework.zip](https://git.hoomano.com/hoomano/mojo-perception-flutter/-/blob/master/TensorFlowLiteC.framework.zip) (TensorFlowLiteC framework with Mediapipe special ops).
 
 2. Unzip `TensorFlowLiteC.framework` in the pub-cache folder of tflite_flutter package:
 [Pub-Cache folder location](https://dart.dev/tools/pub/cmd/pub-get#the-system-package-cache):
@@ -76,7 +76,7 @@ flutter pub get
 
 ### `ANDROID`:
 #### Dynamic libraries
-1. Download [jniLibs.zip](https://github.com/hoomano/mojo-perception-flutter/blob/master/jniLibs.zip).
+1. Download [jniLibs.zip](https://git.hoomano.com/hoomano/mojo-perception-flutter/-/blob/master/jniLibs.zip).
 
 2. Extract in your project path : `android > app > src > main`
 
