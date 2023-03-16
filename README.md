@@ -1,4 +1,6 @@
-# Mojo Perception Flutter API
+# [DEPRECATED] Mojo Perception Flutter API
+
+⚠️ Unfortunately, this repository is no longer maintained as it has been moved to internal project. We are sorry for the inconvenience.
 
 Facial Expression Recognition for your Flutter application in a few lines of code.
 
